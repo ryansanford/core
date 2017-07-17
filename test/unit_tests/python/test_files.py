@@ -23,3 +23,11 @@ def test_qa():
 
 def test_unknown():
     assert files.guess_type_from_filename('example.unknown') == None
+
+def test_input_validation():
+    with pytest.raises(Exception) as excinfo:
+        files.move_form_file_field_into_cas(type('obj', (object,), {'hash': 'foo', 'path': ''}))
+    assert 'Field is not a file field with hash and path' in str(excinfo.value)
+    with pytest.raises(Exception) as excinfo:
+        files.move_form_file_field_into_cas(type('obj', (object,), {'hash': '', 'path': 'foo'}))
+    assert 'Field is not a file field with hash and path' in str(excinfo.value)
