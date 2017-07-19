@@ -88,10 +88,6 @@ post:
               example: !include ../examples/output/container-new.json
     /{AnalysisId}:
       type: analysis-item
-      /files:
-        type: analysis-files
-        /{Filename}:
-          type: analysis-files-create-ticket-filename
       /notes:
         type: analysis-notes-list
         /{NoteId}:
