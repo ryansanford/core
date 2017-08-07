@@ -574,7 +574,7 @@ class BatchHandler(base.RequestHandler):
 
         batch_job = batch.get(_id)
         self._check_permission(batch_job)
-        if batch_job.get('state') != 'pending':
+        if not batch.validate_batch_transition(batch_job.get('state'),'running'):
             self.abort(400, 'Can only run pending batch jobs.')
         return batch.run(batch_job)
 
@@ -587,7 +587,7 @@ class BatchHandler(base.RequestHandler):
 
         batch_job = batch.get(_id)
         self._check_permission(batch_job)
-        if batch_job.get('state') != 'running':
+        if not batch.validate_batch_transition(batch_job.get('state'),'cancelled'):
             self.abort(400, 'Can only cancel started batch jobs.')
         return {'number_cancelled': batch.cancel(batch_job)}
 

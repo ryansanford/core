@@ -15,13 +15,13 @@ from . import gears
 log = config.log
 
 BATCH_JOB_TRANSITIONS = {
-    # To  <-------  #From
-    'failed':       'running',
-    'complete':     'running',
-    'running':      'pending',
-    'cancelled':    'running'
+    # From -----> To
+    'pending': ['running'],
+    'running': ['failed', 'complete', 'cancelled']
 }
 
+def validate_batch_transition(from_state, to_state):
+    return to_state in BATCH_JOB_TRANSITIONS.get(from_state,[])
 
 def get_all(query, projection=None):
     """
@@ -110,7 +110,7 @@ def insert(batch_proposal):
     batch_proposal['modified'] = time_now
     return config.db.batch.insert(batch_proposal)
 
-def update(batch_id, payload):
+def update(batch_id, payload, batch_state=None):
     """
     Updates a batch job, being mindful of state flow.
     """
@@ -119,9 +119,13 @@ def update(batch_id, payload):
     bid = bson.ObjectId(batch_id)
     query = {'_id': bid}
     payload['modified'] = time_now
-    if payload.get('state'):
-        # Require that the batch job has the previous state
-        query['state'] = BATCH_JOB_TRANSITIONS[payload.get('state')]
+    if payload.get('state') and batch_state:
+        # Already being checked in the handler so this may be redundant
+        if validate_batch_transition(batch_state, payload.get('state')):
+            # Require that the batch job has the previous state
+            query['state'] = batch_state
+        else:
+            raise APIStorageException("Cannot transition from {} to  {}.".format(batch_state, payload.get('state')))
     result = config.db.batch.update_one({'_id': bid}, {'$set': payload})
     if result.modified_count != 1:
         raise Exception('Batch job not updated')
@@ -187,15 +191,14 @@ def run(batch_job):
         jobs.append(job)
         job_ids.append(job_id)
 
-    update(batch_job['_id'], {'state': 'running', 'jobs': job_ids})
+    update(batch_job['_id'], {'state': 'running', 'jobs': job_ids}, batch_job['state'])
     return jobs
 
 def cancel(batch_job):
     """
     Cancels all pending jobs, returns number of jobs cancelled.
     """
-
-    pending_jobs = config.db.jobs.find({'state': 'pending', '_id': {'$in': batch_job.get('jobs')}})
+    pending_jobs = config.db.jobs.find({'state': 'pending', '_id': {'$in': batch_job.get('jobs',[])}})
     cancelled_jobs = 0
     for j in pending_jobs:
         job = Job.load(j)
@@ -206,7 +209,7 @@ def cancel(batch_job):
             # if the cancellation fails, move on to next job
             continue
 
-    update(batch_job['_id'], {'state': 'cancelled'})
+    update(batch_job['_id'], {'state': 'cancelled'}, batch_job['state'])
     return cancelled_jobs
 
 def check_state(batch_id):

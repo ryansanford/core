@@ -26,12 +26,11 @@ JOB_STATES_ALLOWED_MUTATE = [
     'running',
 ]
 
-JOB_TRANSITIONS = [
-    'pending --> running',
-    'pending --> cancelled',
-    'running --> failed',
-    'running --> complete',
-]
+JOB_TRANSITIONS = {
+    # From ----> To
+    'pending': ['running', 'cancelled'],
+    'running': ['failed', 'complete']
+}
 
 # How many times a job should be retried
 def max_attempts():
@@ -43,7 +42,7 @@ def retry_on_explicit_fail():
     return config.get_item('queue', 'retry_on_fail')
 
 def valid_transition(from_state, to_state):
-    return (from_state + ' --> ' + to_state) in JOB_TRANSITIONS or from_state == to_state
+    return to_state in JOB_TRANSITIONS.get(from_state, []) or from_state == to_state
 
 class Queue(object):
 
