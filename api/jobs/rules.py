@@ -119,7 +119,6 @@ def eval_rule(rule, file_, container):
     for match in rule.get('any', []):
         if eval_match(match['type'], match['value'], file_, container):
             has_match = True
-            config.log.debug('we found one here')
             break
 
     # If there were matches in the 'any' array and none of them succeeded
@@ -129,7 +128,6 @@ def eval_rule(rule, file_, container):
     # Are there matches in the 'all' set?
     for match in rule.get('all', []):
         if not eval_match(match['type'], match['value'], file_, container):
-            config.log.debug('we didnt fine one here')
             return False
 
     return True
@@ -261,8 +259,6 @@ def get_rules_for_container(db, container):
         result = list(db.project_rules.find({'project_id': str(container['_id'])}))
 
         if not result:
-            print 'Container ' + str(container['_id']) + ' found NO rules'
             return []
         else:
-            print 'Container ' + str(container['_id']) + ' found ' + str(len(result)) + ' rules'
             return result
