@@ -16,9 +16,5 @@ script:
 
 after_success:
   - coveralls
-  - if [ "$TRAVIS_TAG" ]; then
-        ./docker/build-trigger.sh Tag "$TRAVIS_TAG" "$BUILD_TRIGGER_URL";
-    fi
-  - if [ "$TRAVIS_EVENT_TYPE" == "push" -a "$TRAVIS_BRANCH" == "master" ]; then
-        ./docker/build-trigger.sh Branch "$TRAVIS_BRANCH" "$BUILD_TRIGGER_URL";
-    fi
+  # upload my python reports
+  - bash <(curl -s https://codecov.io/bash) -cF python
