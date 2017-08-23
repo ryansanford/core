@@ -139,12 +139,3 @@ def test_generate_api_key(data_builder, as_public):
     r = as_new_user.post('/users/self/key')
     assert r.ok
     assert 'key' in r.json()
-
-
-def test_reset_wechat_registration(data_builder, as_admin):
-    new_user = data_builder.create_user()
-
-    # Reset (create) wechat registration code for user
-    r = as_admin.post('/users/' + new_user + '/reset-registration')
-    assert r.ok
-    assert 'registration_code' in r.json()
