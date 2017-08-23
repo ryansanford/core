@@ -16,8 +16,7 @@ script:
 
 after_success:
   - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
-      # upload my python reports
-      bash <(curl -s https://codecov.io/bash) -cF python
+      bash <(curl -s https://codecov.io/bash) -cF python;
   fi
 
   
