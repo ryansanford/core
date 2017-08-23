@@ -89,7 +89,7 @@ class GearHandler(base.RequestHandler):
         return {'_id': str(gear_id)}
 
     # Temporary Function
-    def download(self, **kwargs): # pragma: no cover
+    def download(self, **kwargs):
         """Download gear tarball file"""
         dl_id = kwargs.pop('cid')
         gear = get_gear(dl_id)
