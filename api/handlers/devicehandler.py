@@ -52,7 +52,7 @@ class DeviceHandler(base.RequestHandler):
 
     # NOTE method not routed in api.py
     @require_superuser
-    def delete(self, device_id): # pragma: no cover
+    def delete(self, device_id):
         raise NotImplementedError()
 
     def get_status(self):
